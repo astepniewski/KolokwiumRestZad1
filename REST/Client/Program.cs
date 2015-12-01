@@ -8,8 +8,14 @@ namespace Client
 {
     class Program
     {
+        private static string FilePath;
+
         static void Main(string[] args)
         {
+            Console.WriteLine("Podaj ścieżkę do pliku");
+            FilePath = Console.ReadLine();
+
+
         }
     }
 }
