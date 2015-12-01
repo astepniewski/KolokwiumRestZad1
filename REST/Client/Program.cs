@@ -45,9 +45,10 @@ namespace Client
                 DownloadFileAsync(OutputFilePath + @"\\decrypted." + Path.GetExtension(FilePath), "decrypt", password).Wait();
                 Console.WriteLine("Plik odszyfrowano");
             }
-            catch (CryptographicException e)
+            catch (Exception e)
             {
                 Console.WriteLine("Nie można odszyfrować! Złe hasło!");
+                Console.ReadKey();
                 return;
             }
 
@@ -70,7 +71,10 @@ namespace Client
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
 
                 HttpResponseMessage response = await client.GetAsync(@"/api/Bib2/GetAES?option=" + option + "&password=" + password);
-
+                if(response.StatusCode.Equals(HttpStatusCode.BadRequest))
+                {
+                    throw new CryptographicException();
+                }
                 if (response.IsSuccessStatusCode)
                 {
                     using (var fileStream = File.Create(path))
