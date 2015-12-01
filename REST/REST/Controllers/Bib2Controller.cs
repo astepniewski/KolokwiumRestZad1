@@ -11,6 +11,7 @@ using System.Web.Mvc;
 using Biblioteka2;
 using System.Diagnostics;
 using Biblioteka3;
+using System.Security.Cryptography;
 
 namespace REST.Controllers
 {
@@ -34,22 +35,38 @@ namespace REST.Controllers
 
             file.SaveAs(PathFile);
         }
-        public HttpResponseMessage GetAES(string option)
+        public HttpResponseMessage GetAES(string option, string password)
         {
             Encryption encryption = new Encryption();
 
             if (option == "encrypt")
             {
-                encryption.EncryptFile(PathFile, PathFile + "enc", "password");
+                encryption.EncryptFile(PathFile, PathFile + "enc", password);
             }
             else if (option == "decrypt")
             {
-                encryption.DecryptFile(PathFile + "enc", PathFile, "password");
+                try
+                {
+                    encryption.DecryptFile(PathFile + "enc", PathFile, password);
+                }
+                catch (CryptographicException e)
+                {
+                    return new HttpResponseMessage(HttpStatusCode.BadRequest);
+                }
 
             }
 
             HttpResponseMessage result = new HttpResponseMessage(HttpStatusCode.OK);
-            var stream = new FileStream(PathFile + "enc", FileMode.Open);
+            Stream stream;
+            if (option == "encrypt")
+            {
+                stream = new FileStream(PathFile + "enc", FileMode.Open);
+
+            } else
+            {
+                stream = new FileStream(PathFile, FileMode.Open);
+
+            }
             result.Content = new StreamContent(stream);
             result.Content.Headers.ContentType =
                 new MediaTypeHeaderValue("application/octet-stream");
